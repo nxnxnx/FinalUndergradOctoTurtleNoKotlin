@@ -1,11 +1,15 @@
 package io.github.nelvson.finalundergradoctoturtlenokotlin;
 
+import android.content.Intent;
 import android.os.StrictMode;
 import android.provider.ContactsContract;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.JsonReader;
 import android.util.Log;
+import android.view.View;
+import android.widget.RatingBar;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,25 +39,56 @@ import com.google.gson.JsonObject;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
+
+import static java.lang.Thread.sleep;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    int PROXIMITY_RADIUS = 1000;
+    LatLng home = new LatLng(-6.2456559,106.6217354);
+    int dist[] = new int[60];
+    String namaToko[] = new String[60];
+    int priceBlockI[] = new int[60];
+    int priceBlockII[] = new int[60];
+    int priceBlockIII[] = new int[60];
+    int count[] = new int[60];
+    double Lat[] = new double[60];
+    double Lng[] = new double[60];
+    int param = 0;
+    double pref_rating = 3.0;
+    double pref_price;
+    double pref_dist;
+    public RatingBar ratingBar;
+
+
+    double intent_lat;
+    double intent_lng;
+    int position;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+
         mapFragment.getMapAsync(this);
         StrictMode.ThreadPolicy policy =new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-    }
+        Intent intent = getIntent();
+        position = intent.getIntExtra("position",0);
 
+        LatLng X = new LatLng(-6.2456559,106.6217354);
+        String pathClosestStore = urlFindClosestConvinience(2500,X);
+
+        String json = passClosestPathJSON(pathClosestStore);
+        calculateClosestStore(json);
+        String[] myKeys = getResources().getStringArray(R.array.sections);
+    }
 
     /**
      * Manipulates the map once available.
@@ -68,82 +103,189 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng sydney = new LatLng(-6.2456559,106.6217354);
+        LatLng sydney = new LatLng(Lat[position], Lng[position]);
         float zoomLvl = 19.0f;
 
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Home"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, zoomLvl));
-        LatLng X = new LatLng(-6.2456559,106.6217354);
-        LatLng Y = new LatLng(-6.2249246, 106.5925628);
-        String path = urlCalculateClosestPath(X, Y);
-        String json = passClosestPathJSON(path);
-        logg(urlFindClosestConvinience(500,X));/*
-     //   logg(json);
+    }
 
+    public void createMarker(JSONArray results, int idx, GoogleMap googleMap){
         try {
+            JSONObject geometry = results.getJSONObject(idx).getJSONObject("geometry");
+            JSONObject location = geometry.getJSONObject("location");
+            Double lat = location.getDouble("lat");
+            Double lng = location.getDouble("lng");
+            LatLng mark = new LatLng(lat, lng);
+            GoogleMap newmap = googleMap;
+            String storeName = results.getJSONObject(idx).get("name").toString();
+            newmap.addMarker(new MarkerOptions().position(mark).title(storeName));
+        } catch(JSONException e) {
+
+        }
+    }
+
+    public String getStoreDistance(String json){
+        String distance_value="";
+        try{
             JSONObject jsonObject = new JSONObject(json);
-            Gson gson = new GsonBuilder().create();
-            JsonObject root = gson.fromJson(json, JsonObject.class);
             JSONArray routes = jsonObject.getJSONArray("routes");
             JSONArray legs = routes.getJSONObject(0).getJSONArray("legs");
             JSONObject distance = legs.getJSONObject(0).getJSONObject("distance");
-            JSONObject duration = legs.getJSONObject(0).getJSONObject("duration");
-            logg("Distance");
-            logg(distance.get("text").toString());
-            logg("in meters");
-            int asd = Integer.parseInt(distance.get("value").toString());
-            logg(distance.get("value").toString());
+            distance_value = distance.get("value").toString();
+            createArrayStoreDistance(distance_value);
+        }
+        catch (JSONException e){
+            logg("no");
+        }
+        return distance_value;
+    }
+
+    public void createArrayStoreDistance(String distance){
+        dist[param] = Integer.parseInt(distance);
+        logg("newline \n"+ String.valueOf(param) + "\n"+String.valueOf(dist[param]));
+
+        param++;
+        if (param==60) param=0;
+    }
+
+    public void createArrayStoreName(String name){
+        namaToko[param] = name;
+ //       logg(namaToko[param]);
+    }
+
+    public void submitButton(View view){
+        logg("submit button");
+    }
+
+    public void calculateClosestStore(String json){
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            JSONArray results = jsonObject.getJSONArray("results");
+            String nextPageToken = jsonObject.get("next_page_token").toString();
+
+            int json_length = results.length();
+
+            for (int i=0; json_length>i;i++){
+                String place_id = results.getJSONObject(i).get("place_id").toString();
+                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                Lat[i] = result_lat;
+                Lng[i] = result_lng;
+                String urlClosestPath = urlCalculateClosestPath(home, place_id);
+                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
+                String distance = getStoreDistance(jsonClosestPath);
+
+            }
+            try {
+                Thread.sleep(3000);
+            }catch(InterruptedException ex){
+
+            }
+
+            String findMore = urlFindMoreClosestConvenience(2500, home, nextPageToken);
+            String jsonFindMore = passClosestPathJSON(findMore);
+            nextPageToken = jsonObject.get("next_page_token").toString();
+            jsonObject = new JSONObject(jsonFindMore);
+            results = jsonObject.getJSONArray("results");
+            json_length = results.length();
+            for (int i=0; json_length>i;i++){
+                String place_id = results.getJSONObject(i).get("place_id").toString();
+                String storeName = results.getJSONObject(i).get("name").toString();
+                createArrayStoreName(storeName);
+                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                Lat[20+i] = result_lat;
+                Lng[20+i] = result_lng;
+                String urlClosestPath = urlCalculateClosestPath(home, place_id);
+                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
+                String distance = getStoreDistance(jsonClosestPath);
+
+            }
+
+            try {
+                Thread.sleep(3000);
+            }catch(InterruptedException ex){
+
+            }
+            findMore = urlFindMoreClosestConvenience(2500, home, nextPageToken);
+            jsonFindMore = passClosestPathJSON(findMore);
+            jsonObject = new JSONObject(jsonFindMore);
+            results = jsonObject.getJSONArray("results");
+            json_length = results.length();
+            for (int i=0; json_length>i;i++){
+                String place_id = results.getJSONObject(i).get("place_id").toString();
+                String storeName = results.getJSONObject(i).get("name").toString();
+                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                Lat[40+i] = result_lat;
+                Lng[40+i] = result_lng;
+                createArrayStoreName(storeName);
+                String urlClosestPath = urlCalculateClosestPath(home, place_id);
+                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
+                String distance = getStoreDistance(jsonClosestPath);
+
+            }
         } catch (JSONException e){
             logg(e.toString());
-        }*/
+        }
+    }
+
+    public String urlFindMoreClosestConvenience(int radius, LatLng X, String nextPageToken){
+        String key = "AIzaSyC8PIs1nyyrmKeCUlyTbTxco9PfrD1TKtc";
+        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        url.append("location="+X.latitude+","+X.longitude);
+        url.append("&radius="+radius);
+        url.append("&type=convenience_store");
+        url.append("&key="+key);
+        url.append("&pagetoken="+nextPageToken);
+        return url.toString();
     }
 
     public String urlFindClosestConvinience(int radius, LatLng X){
         String key = "AIzaSyC8PIs1nyyrmKeCUlyTbTxco9PfrD1TKtc";
-        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/place/json?");
+        StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         url.append("location="+X.latitude+","+X.longitude);
-        url.append("&radius"+radius);
+        url.append("&radius="+radius);
         url.append("&type=convenience_store");
         url.append("&key="+key);
+
         return url.toString();
     }
 
+    public String passClosestPathJSON(String reqUrl) {
+        //     String response = null;
+        StringBuilder result = new StringBuilder();
+        try {
+            URL url = new URL(reqUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            // read the response
+            InputStream in = new BufferedInputStream(conn.getInputStream());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = reader.readLine()) != null){
+                result.append(line);
+            }
+        } catch (Exception e) {
+            Log.e("yee", "msg", e);
+            //         Log.e("yee","failed my dude");
+        } finally {
+            //ye
+        }
+        return result.toString();
+    }
 
-   public String passClosestPathJSON(String reqUrl) {
- //     String response = null;
-      StringBuilder result = new StringBuilder();
-      try {
-         URL url = new URL(reqUrl);
-         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-         conn.setRequestMethod("GET");
-         // read the response
-         InputStream in = new BufferedInputStream(conn.getInputStream());
-         BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-         String line;
-         while ((line = reader.readLine()) != null){
-             result.append(line);
-         }
-      } catch (Exception e) {
-          Log.e("yee", "msg", e);
- //         Log.e("yee","failed my dude");
-      } finally {
-          //ye
-      }
-
-      return result.toString();
-   }
-
-   public void logg(String message){
+    public void logg(String message){
         Log.d("yee", message);
-   }
+    }
 
-   private String urlCalculateClosestPath(LatLng X, LatLng Y){
+    private String urlCalculateClosestPath(LatLng X, String store_place_id){
         String key = "AIzaSyC8PIs1nyyrmKeCUlyTbTxco9PfrD1TKtc";
         StringBuilder url = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
         url.append("origin="+X.latitude+","+X.longitude);
-        url.append("&destination="+Y.latitude+","+Y.longitude);
+        url.append("&destination=place_id:"+store_place_id);
         url.append("&key="+key);
         return url.toString();
     }
-
 }

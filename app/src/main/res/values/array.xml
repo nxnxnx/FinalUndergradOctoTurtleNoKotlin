@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="sections">
+        <item >Toko 1</item>
+        <item >Toko 2</item>
+        <item >Toko 3</item>
+        <item >Toko 4</item>
+        <item >Toko 5</item>
+        <item >Toko 6</item>
+        <item >Toko 7</item>
+        <item >Toko 8</item>
+        <item >Toko 9</item>
+        <item >Toko 10</item>
+        <item >Toko 11</item>
+        <item >Toko 12</item>
+        <item >Toko 13</item>
+        <item >Toko 14</item>
+        <item >Toko 15</item>
+        <item >Toko 16</item>
+        <item >Toko 17</item>
+        <item >Toko 18</item>
+        <item >Toko 19</item>
+        <item >Toko 20</item>
+        <item >Toko 21</item>
+        <item >Toko 22</item>
+        <item >Toko 23</item>
+        <item >Toko 24</item>
+        <item >Toko 25</item>
+        <item >Toko 26</item>
+        <item >Toko 27</item>
+        <item >Toko 28</item>
+        <item >Toko 29</item>
+        <item >Toko 30</item>
+        <item >Toko 31</item>
+        <item >Toko 32</item>
+        <item >Toko 33</item>
+        <item >Toko 34</item>
+    </string-array>
+</resources>
