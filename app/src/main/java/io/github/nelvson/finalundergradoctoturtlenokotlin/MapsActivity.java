@@ -160,71 +160,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void calculateClosestStore(String json){
         try {
-            JSONObject jsonObject = new JSONObject(json);
-            JSONArray results = jsonObject.getJSONArray("results");
-            String nextPageToken = jsonObject.get("next_page_token").toString();
 
-            int json_length = results.length();
+            String pathUpper = "http://104.215.190.135/getUpper";
+            String pathLower = "http://104.215.190.135/getLower";
+            String jsonUpper = passClosestPathJSON(pathUpper);
+            String jsonLower = passClosestPathJSON(pathLower);
 
-            for (int i=0; json_length>i;i++){
-                String place_id = results.getJSONObject(i).get("place_id").toString();
-                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
-                Lat[i] = result_lat;
-                Lng[i] = result_lng;
-                String urlClosestPath = urlCalculateClosestPath(home, place_id);
-                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
-                String distance = getStoreDistance(jsonClosestPath);
+            JSONArray jsonArrayLower = new JSONArray(jsonLower);
+            JSONArray jsonArrayUpper = new JSONArray(jsonUpper);
+            int ArrayLowerLength = jsonArrayLower.length();
+            int ArrayUpperLength = jsonArrayUpper.length();
 
-            }
-            try {
-                Thread.sleep(3000);
-            }catch(InterruptedException ex){
-
+            for (int i=0; ArrayUpperLength>i;i++){
+                String norutToko = (jsonArrayUpper.getJSONObject(i).getString("norut_tb_toko"));
+                int nomorToko = Integer.parseInt(norutToko);
+                double latToko = jsonArrayUpper.getJSONObject(i).getDouble("lat_tb_toko");
+                double lngToko = jsonArrayUpper.getJSONObject(i).getDouble("lng_tb_toko");
+                Lat[nomorToko] = latToko;
+                Lng[nomorToko] = lngToko;
             }
 
-            String findMore = urlFindMoreClosestConvenience(2500, home, nextPageToken);
-            String jsonFindMore = passClosestPathJSON(findMore);
-            nextPageToken = jsonObject.get("next_page_token").toString();
-            jsonObject = new JSONObject(jsonFindMore);
-            results = jsonObject.getJSONArray("results");
-            json_length = results.length();
-            for (int i=0; json_length>i;i++){
-                String place_id = results.getJSONObject(i).get("place_id").toString();
-                String storeName = results.getJSONObject(i).get("name").toString();
-                createArrayStoreName(storeName);
-                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
-                Lat[20+i] = result_lat;
-                Lng[20+i] = result_lng;
-                String urlClosestPath = urlCalculateClosestPath(home, place_id);
-                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
-                String distance = getStoreDistance(jsonClosestPath);
-
-            }
-
-            try {
-                Thread.sleep(3000);
-            }catch(InterruptedException ex){
-
-            }
-            findMore = urlFindMoreClosestConvenience(2500, home, nextPageToken);
-            jsonFindMore = passClosestPathJSON(findMore);
-            jsonObject = new JSONObject(jsonFindMore);
-            results = jsonObject.getJSONArray("results");
-            json_length = results.length();
-            for (int i=0; json_length>i;i++){
-                String place_id = results.getJSONObject(i).get("place_id").toString();
-                String storeName = results.getJSONObject(i).get("name").toString();
-                Double result_lat = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-                Double result_lng = results.getJSONObject(i).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
-                Lat[40+i] = result_lat;
-                Lng[40+i] = result_lng;
-                createArrayStoreName(storeName);
-                String urlClosestPath = urlCalculateClosestPath(home, place_id);
-                String jsonClosestPath = passClosestPathJSON(urlClosestPath);
-                String distance = getStoreDistance(jsonClosestPath);
-
+            for (int i=0; ArrayLowerLength>i;i++){
+                String norutToko = (jsonArrayLower.getJSONObject(i).getString("norut_tb_toko"));
+                int nomorToko = Integer.parseInt(norutToko);
+                double latToko = jsonArrayLower.getJSONObject(i).getDouble("lat_tb_toko");
+                double lngToko = jsonArrayLower.getJSONObject(i).getDouble("lng_tb_toko");
+                Lat[nomorToko] = latToko;
+                Lng[nomorToko] = lngToko;
             }
         } catch (JSONException e){
             logg(e.toString());
