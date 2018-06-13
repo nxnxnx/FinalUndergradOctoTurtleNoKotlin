@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener{
-
+    List<Integer> nomorUrut = new ArrayList<Integer>();
        @Override
     public void onCreate(Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -35,9 +35,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
-        String[] elements = {"Line 1", "Line 2"};
         List<String> elem = new ArrayList<String>();
-        //* *EDIT* *
         ListView listview = (ListView) findViewById(R.id.listView1);
         String pathUpper = "http://104.215.190.135/getUpper";
         String pathLower = "http://104.215.190.135/getLower";
@@ -55,15 +53,17 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                 String ratToko = (jsonArrayUpper.getJSONObject(i).getString("rat_tb_toko"));
                 String distToko = (jsonArrayUpper.getJSONObject(i).getString("dist_tb_toko"));
                 pushToko = "Toko "+norutToko+", rating : "+ratToko+", distance (in meters) : "+distToko;
+                nomorUrut.add(Integer.parseInt(norutToko));
                 elem.add(pushToko);
             }
 
             for (int i=0; ArrayLowerLength>i;i++){
                 String pushToko="";
-                String norutToko = (jsonArrayUpper.getJSONObject(i).getString("norut_tb_toko"));
-                String ratToko = (jsonArrayUpper.getJSONObject(i).getString("rat_tb_toko"));
-                String distToko = (jsonArrayUpper.getJSONObject(i).getString("dist_tb_toko"));
+                String norutToko = (jsonArrayLower.getJSONObject(i).getString("norut_tb_toko"));
+                String ratToko = (jsonArrayLower.getJSONObject(i).getString("rat_tb_toko"));
+                String distToko = (jsonArrayLower.getJSONObject(i).getString("dist_tb_toko"));
                 pushToko = "Toko "+norutToko+", rating : "+ratToko+", distance (in meters) : "+distToko;
+                nomorUrut.add(Integer.parseInt(norutToko));
                 elem.add(pushToko);
             }
         }
@@ -108,7 +108,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             Intent intent = new Intent();
             intent.setClass(this, MapsActivity.class);
             intent.putExtra("position", position);
-
+            intent.putExtra("norut", nomorUrut.get(position));
             intent.putExtra("id", id);
             startActivity(intent);
     }

@@ -12,7 +12,7 @@
           <RadioGroup
         android:id="@+id/radio_group_list_selector"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="100dp"
         android:orientation="horizontal"
         android:background="#ffffff"
         android:padding="4dp" >
@@ -21,10 +21,9 @@
             android:id="@+id/rating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="?android:attr/ratingBarStyleSmall"
             android:numStars="5"
-            android:stepSize="0.1"
-            android:isIndicator="true" />
+            android:rating="3"
+             />
 
           <Button
         android:layout_below="@+id/ratingBar"

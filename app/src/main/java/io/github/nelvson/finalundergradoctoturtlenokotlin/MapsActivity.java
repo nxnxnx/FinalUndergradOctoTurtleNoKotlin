@@ -51,22 +51,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     LatLng home = new LatLng(-6.2456559,106.6217354);
     int dist[] = new int[60];
     String namaToko[] = new String[60];
-    int priceBlockI[] = new int[60];
-    int priceBlockII[] = new int[60];
-    int priceBlockIII[] = new int[60];
-    int count[] = new int[60];
+
     double Lat[] = new double[60];
     double Lng[] = new double[60];
     int param = 0;
-    double pref_rating = 3.0;
-    double pref_price;
-    double pref_dist;
+
     public RatingBar ratingBar;
 
-
-    double intent_lat;
-    double intent_lng;
-    int position;
+    int position, norut;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         StrictMode.setThreadPolicy(policy);
         Intent intent = getIntent();
         position = intent.getIntExtra("position",0);
-
+        norut = intent.getIntExtra("norut",0);
         LatLng X = new LatLng(-6.2456559,106.6217354);
         String pathClosestStore = urlFindClosestConvinience(2500,X);
 
@@ -155,7 +147,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void submitButton(View view){
-        logg("submit button");
+        RatingBar ratingBar = (RatingBar) findViewById(R.id.rating);
+        double ratedValue = ratingBar.getRating();
+        String pathNewRating = "http://104.215.190.135/newRating?id="+norut+"&rating="+ratedValue;
+        passClosestPathJSON(pathNewRating);
+        Intent backToMainIntent = new Intent();
+        backToMainIntent.setClass(this, MainActivity.class);
+        startActivity(backToMainIntent);
     }
 
     public void calculateClosestStore(String json){
